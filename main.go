@@ -7,6 +7,9 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
 type Config struct {
@@ -78,26 +81,33 @@ func init() {
 
 func main() {
 	flag.Parse()
-
+/*
+	sess := session.New(&aws.Config)
+	cloudwatch := cloudwatch.New(sess)
+*/
 	v, _ := mem.VirtualMemory()
 	d, _ := disk.Usage("/")
 	h, _ := host.Info()
 
 	var memUnitDivisor, diskUnitDivisor, uptimeUnitDivisor float64
-	var uptimeUnitText string
+	var memUnitText, diskUnitText, uptimeUnitText string
 	memUnitDivisor = 1
 	diskUnitDivisor = 1
 	uptimeUnitDivisor = 1
 
 	switch {
 	case config.MemoryUnit == "kb":
+		memUnitText = "Kilobytes"
 		memUnitDivisor = 1024
 	case config.MemoryUnit == "mb":
+		memUnitText = "Megabytes"
 		memUnitDivisor = 1024 * 1024
 	case config.MemoryUnit == "gb":
+		memUnitText = "Gigabytes"
 		memUnitDivisor = 1024 * 1024 * 1024
 	default:
 		config.MemoryUnit = "b"
+		memUnitText = "Bytes"
 		memUnitDivisor = 1
 	}
 
@@ -119,15 +129,20 @@ func main() {
 
 	switch {
 	case config.DiskUnit == "kb":
+		diskUnitText = "Kilobytes"
 		diskUnitDivisor = 1024
 	case config.DiskUnit == "mb":
+		diskUnitText = "Megabytes"
 		diskUnitDivisor = 1024 * 1024
 	case config.DiskUnit == "gb":
+		diskUnitText = "Gigabytes"
 		diskUnitDivisor = 1024 * 1024 * 1024
 	case config.DiskUnit == "tb":
+		diskUnitText = "Terabytes"
 		diskUnitDivisor = 1024 * 1024 * 1024 * 1024
 	default:
 		config.DiskUnit = "b"
+		diskUnitText = "Bytes"
 		diskUnitDivisor = 1024 * 1024
 	}
 
