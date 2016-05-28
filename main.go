@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"time"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 )
 
 type Config struct {
@@ -112,6 +113,17 @@ func main() {
 	memUnitDivisor = 1
 	diskUnitDivisor = 1
 	uptimeUnitDivisor = 1
+
+	if config.InstanceId=="" {
+		//try to read instanceid from metadata
+		metadataService := ec2metadata.New(sess)
+		instanceid, err := metadataService.GetMetadata("instance-id")
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			config.InstanceId = instanceid
+		}
+	}
 
 	switch {
 	case config.MemoryUnit == "kb":
