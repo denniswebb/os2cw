@@ -10,23 +10,29 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"time"
 )
 
 type Config struct {
-	MemoryFreePercentage bool
-	MemoryFreeAmount     bool
-	MemoryUsedPercentage bool
-	MemoryUsedAmount     bool
-	MemoryUnit           string
+	MemoryFreePercentage 	bool
+	MemoryFreeAmount     	bool
+	MemoryUsedPercentage 	bool
+	MemoryUsedAmount     	bool
+	MemoryUnit           	string
 
-	DiskFreePercentage bool
-	DiskFreeAmount     bool
-	DiskUsedPercentage bool
-	DiskUsedAmount     bool
-	DiskUnit           string
+	DiskFreePercentage		bool
+	DiskFreeAmount    		bool
+	DiskUsedPercentage		bool
+	DiskUsedAmount    		bool
+	DiskUnit          		string
 
-	Uptime     bool
-	UptimeUnit string
+	Uptime     				bool
+	UptimeUnit 				string
+
+	InstanceId				string
+	NameSpace 				string
+
+	Verbose					bool
 }
 
 var config *Config
@@ -44,21 +50,28 @@ func init() {
 		memoryUnitDefault           = "kb"
 		memoryUnitDesc              = "Unit for memory metrics. Allowed: gb, mb, kb, b. Default: kb"
 
-		diskFreePercentageDefault = false
-		diskFreePercentageDesc    = "Push disk Free Percentage Custom Metric"
-		diskFreeAmountDefault     = false
-		diskFreeAmountDesc        = "Push disk Free Amount Custom Metric"
-		diskUsedPercentageDefault = false
-		diskUsedPercentageDesc    = "Push disk Used Percentage Custom Metric"
-		diskUsedAmountDefault     = false
-		diskUsedAmountDesc        = "Push disk Used Amount Custom Metric"
-		diskUnitDefault           = "kb"
-		diskUnitDesc              = "Unit for disk metrics. Allowed: tb, gb, mb, kb, b. Default: mb"
+		diskFreePercentageDefault 	= false
+		diskFreePercentageDesc    	= "Push disk Free Percentage Custom Metric"
+		diskFreeAmountDefault     	= false
+		diskFreeAmountDesc        	= "Push disk Free Amount Custom Metric"
+		diskUsedPercentageDefault 	= false
+		diskUsedPercentageDesc    	= "Push disk Used Percentage Custom Metric"
+		diskUsedAmountDefault     	= false
+		diskUsedAmountDesc        	= "Push disk Used Amount Custom Metric"
+		diskUnitDefault           	= "kb"
+		diskUnitDesc              	= "Unit for disk metrics. Allowed: tb, gb, mb, kb, b. Default: mb"
 
-		uptimeDefault     = false
-		uptimeDesc        = "System uptime"
-		uptimeUnitDefault = "s"
-		uptimeUnitDesc    = "Unit for uptime metric. Allowed: s, m, h, d. Default: s"
+		uptimeDefault     			= false
+		uptimeDesc        			= "System uptime"
+		uptimeUnitDefault 			= "s"
+		uptimeUnitDesc    			= "Unit for uptime metric. Allowed: s, m, h, d. Default: s"
+
+		instanceIdDesc 				= "InstanceId used as metric dimension. Auto-detected by default."
+		nameSpaceDefault			= "Instance"
+		nameSpaceDesc				= "Cloudwatch namespace for metrics. Defaults to Custom"
+
+		verboseDefault				= false
+		verboseDesc					= "Outputs values to stdout."
 	)
 
 	config = &Config{}
@@ -77,14 +90,19 @@ func init() {
 
 	flag.BoolVar(&config.Uptime, "uptime", uptimeDefault, uptimeDesc)
 	flag.StringVar(&config.UptimeUnit, "uptime-unit", uptimeUnitDefault, uptimeUnitDesc)
+
+	flag.StringVar(&config.InstanceId, "instanceid", "", instanceIdDesc)
+	flag.StringVar(&config.NameSpace, "namespace", nameSpaceDefault, nameSpaceDesc)
+
+	flag.BoolVar(&config.Verbose,"verbose", verboseDefault, verboseDesc)
 }
 
 func main() {
 	flag.Parse()
-/*
-	sess := session.New(&aws.Config)
-	cloudwatch := cloudwatch.New(sess)
-*/
+
+	sess := session.New()
+	cloudwatchService := cloudwatch.New(sess)
+
 	v, _ := mem.VirtualMemory()
 	d, _ := disk.Usage("/")
 	h, _ := host.Info()
@@ -112,19 +130,56 @@ func main() {
 	}
 
 	if config.MemoryFreePercentage {
-		fmt.Printf("Memory Free Percent: %f%%\n", (100.0 - v.UsedPercent))
+		memFreePercentageValue := 100.0 - v.UsedPercent
+
+		if config.Verbose {
+			fmt.Printf("Memory Free Percent: %f%%\n", memFreePercentageValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "MemoryFreePercentage", "Percent", memFreePercentageValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.MemoryUsedPercentage {
-		fmt.Printf("Memory Used Percent: %f%%\n", v.UsedPercent)
+		if config.Verbose {
+			fmt.Printf("Memory Used Percent: %f%%\n", v.UsedPercent)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "MemoryUtilization", "Percent", v.UsedPercent)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.MemoryFreeAmount {
-		fmt.Printf("Memory Free(%s): %f\n", config.MemoryUnit, float64(v.Available)/memUnitDivisor)
+		memFreeValue := float64(v.Available) / memUnitDivisor
+
+		if config.Verbose {
+			fmt.Printf("Memory Free(%s): %f\n", memUnitText, memFreeValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "Memory Free", memUnitText, memFreeValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.MemoryUsedAmount {
-		fmt.Printf("Memory Used(%s): %f\n", config.MemoryUnit, float64(v.Used)/memUnitDivisor)
+		memUsedValue := float64(v.Used) / memUnitDivisor
+		if config.Verbose {
+			fmt.Printf("Memory Used(%s): %f\n", memUnitText, memUsedValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "Memory Used", memUnitText, memUsedValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	switch {
@@ -147,19 +202,57 @@ func main() {
 	}
 
 	if config.DiskFreePercentage {
-		fmt.Printf("Disk Free Percent: %f%%\n", (100.0 - d.UsedPercent))
+		diskFreePercentageValue := 100.0 - d.UsedPercent
+
+		if config.Verbose {
+			fmt.Printf("Disk Free Percent: %f%%\n", diskFreePercentageValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "DiskFreePercentage", "Percent", diskFreePercentageValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.DiskUsedPercentage {
-		fmt.Printf("Disk Used Percent: %f%%\n", d.UsedPercent)
+		if config.Verbose {
+			fmt.Printf("Disk Used Percent: %f%%\n", d.UsedPercent)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "DiskUtilization", "Percent", d.UsedPercent)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.DiskFreeAmount {
-		fmt.Printf("Disk Free(%s): %f\n", config.DiskUnit, float64(d.Free)/diskUnitDivisor)
+		diskFreeValue := float64(d.Free) / diskUnitDivisor
+
+		if config.Verbose {
+			fmt.Printf("Disk Free(%s): %f\n", diskUnitText, diskFreeValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "Disk Free", diskUnitText, diskFreeValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if config.DiskUsedAmount {
-		fmt.Printf("Disk Used(%s): %f\n", config.DiskUnit, float64(d.Used)/diskUnitDivisor)
+		diskUsedValue := float64(d.Used) / diskUnitDivisor
+
+		if config.Verbose {
+			fmt.Printf("Disk Used(%s): %f\n", diskUnitText, diskUsedValue)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "Disk Used", diskUnitText, diskUsedValue)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	switch {
@@ -182,6 +275,35 @@ func main() {
 	}
 
 	if config.Uptime {
-		fmt.Printf("System Uptime(%s): %v\n", uptimeUnitText, float64(h.Uptime)/uptimeUnitDivisor)
+		if config.Verbose {
+			fmt.Printf("System Uptime(%s): %v\n", uptimeUnitText, float64(h.Uptime) / uptimeUnitDivisor)
+		}
+
+		_, err := SendMetrics(cloudwatchService, "Uptime", "Seconds", float64(h.Uptime))
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
+}
+
+func SendMetrics(cloudwatchService *cloudwatch.CloudWatch, metricName string, metricUnit string, metricValue float64) (*cloudwatch.PutMetricDataOutput, error) {
+	params := &cloudwatch.PutMetricDataInput{
+		MetricData: []*cloudwatch.MetricDatum{
+			{
+				MetricName: aws.String(metricName),
+				Dimensions: []*cloudwatch.Dimension{
+					{
+						Name:  aws.String("InstanceID"),
+						Value: aws.String(config.InstanceId),
+					},
+				},
+				Timestamp: aws.Time(time.Now()),
+				Unit:      aws.String(metricUnit),
+				Value:     aws.Float64(metricValue),
+			},
+		},
+		Namespace: aws.String(config.NameSpace),
+	}
+	return cloudwatchService.PutMetricData(params)
 }
