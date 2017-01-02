@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/dhwebb/go-ec2-custom-metrics/cmd"
+	"github.com/dhwebb/os2cw/cmd"
 )
 
 var BuildVersion = "0.1"
