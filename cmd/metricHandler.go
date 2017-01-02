@@ -21,7 +21,7 @@ type metricSpec struct {
 }
 
 type metricHandlerResponse struct {
-	Dimension string
+	Dimension dimension
 	Value     float64
 	Unit      string
 }
@@ -29,6 +29,11 @@ type metricHandlerResponse struct {
 type metricUnit struct {
 	Name       string
 	Multiplier float64
+}
+
+type dimension struct {
+	Name string
+	Value string
 }
 
 func (ms *metricSpec) Run() error {
@@ -40,15 +45,15 @@ func (ms *metricSpec) Run() error {
 
 	for _, resp := range responses {
 		if dryRun {
-			if resp.Dimension != "" {
-				fmt.Printf("%s(%s) %s: %v %s\n", systemId, resp.Dimension, ms.Name, resp.Value, resp.Unit)
+			if resp.Dimension.Name != "" {
+				fmt.Printf("%s(%s: %s) %s: %v %s\n", systemId, resp.Dimension.Name ,resp.Dimension.Value, ms.Name, resp.Value, resp.Unit)
 			} else {
 				fmt.Printf("%s %s: %v %s\n", systemId, ms.Name, resp.Value, resp.Unit)
 			}
 			continue
 		}
 
-		_, err = SendCwMetric(ms.Name, resp.Unit, resp.Value)
+		_, err = SendCwMetric(ms.Name, resp.Unit, resp.Value, resp.Dimension)
 		if err != nil {
 			log.Errorf("Error writing metric %s to CloudWatch.\n", ms.Name)
 			return err
@@ -58,17 +63,26 @@ func (ms *metricSpec) Run() error {
 	return nil
 }
 
-func SendCwMetric(metricName string, metricUnit string, metricValue float64) (*cloudwatch.PutMetricDataOutput, error) {
+func SendCwMetric(metricName, metricUnit string, metricValue float64, d dimension) (*cloudwatch.PutMetricDataOutput, error) {
+	dimensions := []*cloudwatch.Dimension{
+		{
+			Name:  aws.String("InstanceID"),
+			Value: aws.String(systemId),
+		}}
+
+	if d.Name != "" {
+		dimensions = append(dimensions,
+		&cloudwatch.Dimension{
+			Name: aws.String(d.Name),
+			Value: aws.String(d.Value),
+		})
+	}
+
 	params := &cloudwatch.PutMetricDataInput{
 		MetricData: []*cloudwatch.MetricDatum{
 			{
 				MetricName: aws.String(metricName),
-				Dimensions: []*cloudwatch.Dimension{
-					{
-						Name:  aws.String("InstanceID"),
-						Value: aws.String(systemId),
-					},
-				},
+				Dimensions: dimensions,
 				Timestamp: aws.Time(time.Now()),
 				Unit:      aws.String(metricUnit),
 				Value:     aws.Float64(metricValue),

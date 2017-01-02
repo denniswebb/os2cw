@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/ryanuber/columnize"
+	"sort"
 )
 
 type SendCmd struct {
@@ -34,7 +36,7 @@ func init() {
 	rootCommand.AddCommand(cmd)
 
 	cmd.PersistentFlags().StringP("mem-unit", "m", "", "memory size unit (b, kb, mb, gb)")
-	cmd.PersistentFlags().StringP("vol-unit", "d", "", "volume size unit (b, kb, mb, gb, tb)")
+	cmd.PersistentFlags().StringP("vol-unit", "u", "", "volume size unit (b, kb, mb, gb, tb)")
 	cmd.PersistentFlags().StringP("namespace", "n", "", "CloudWatch namespace")
 	cmd.PersistentFlags().StringVarP(&systemId, "id", "i", "", "system id to store metrics")
 	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:\\)")
@@ -73,12 +75,38 @@ func init() {
 	metricSpecs["uptime"] = metricSpec{Name: "Uptime",
 		handler: uptime}
 
+	updateUsageTemplate()
+
 	storageUnits = make(map[string]metricUnit)
 	storageUnits["b"] = metricUnit{Name: "Bytes", Multiplier: 1}
 	storageUnits["kb"] = metricUnit{Name: "Kilobytes", Multiplier: 1024}
 	storageUnits["mb"] = metricUnit{Name: "Megabytes", Multiplier: 1024 * 1024}
 	storageUnits["gb"] = metricUnit{Name: "Gigabytes", Multiplier: 1024 * 1024 * 1024}
 	storageUnits["tb"] = metricUnit{Name: "Terabytes", Multiplier: 1024 * 1024 * 1024 * 1024}
+}
+
+func updateUsageTemplate() {
+	var metricArgHelp []string
+
+	var args []string
+	for k,_ := range metricSpecs {
+		args = append(args,k)
+	}
+	sort.Strings(args)
+
+	sendCmd.ValidArgs = args
+	sendCmd.Example = "  os2cw send -u gb -m mb -v / -v /home mem-avail mem-used vol-free uptime"
+
+	for _,arg := range args {
+		metricArgHelp = append(metricArgHelp,fmt.Sprintf("%s | %s \n", arg,metricSpecs[arg].Name))
+	}
+
+	sendCmd.SetUsageTemplate(
+		fmt.Sprintf("%s\nAvailable Metrics:\n%s\n\n",
+			sendCmd.UsageTemplate(),
+			columnize.Format(metricArgHelp,
+				columnize.MergeConfig(columnize.DefaultConfig(),
+					&columnize.Config{Prefix:"      "}))))
 }
 
 func send(cmd *cobra.Command, args []string) {

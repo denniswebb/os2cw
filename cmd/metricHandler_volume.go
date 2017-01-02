@@ -27,7 +27,7 @@ func volumeUsed() (resp []metricHandlerResponse, err error) {
 			continue
 		}
 		resp = append(resp,
-			metricHandlerResponse{Dimension: v,
+			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v},
 				Value: float64(d.Used) / storageUnits[viper.GetString("volumeUnit")].Multiplier,
 				Unit:  storageUnits[viper.GetString("volumeUnit")].Name})
 	}
@@ -50,7 +50,7 @@ func volumeAvailable() (resp []metricHandlerResponse, err error) {
 			continue
 		}
 		resp = append(resp,
-			metricHandlerResponse{Dimension: v, Value: 100.0 - d.UsedPercent, Unit: "Percent"})
+			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: 100.0 - d.UsedPercent, Unit: "Percent"})
 	}
 
 	return resp, nil
@@ -71,7 +71,7 @@ func volumeUtil() (resp []metricHandlerResponse, err error) {
 			continue
 		}
 		resp = append(resp,
-			metricHandlerResponse{Dimension: v, Value: d.UsedPercent, Unit: "Percent"})
+			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: d.UsedPercent, Unit: "Percent"})
 	}
 
 	return resp, nil
@@ -92,7 +92,7 @@ func volumeFree() (resp []metricHandlerResponse, err error) {
 			continue
 		}
 		resp = append(resp,
-			metricHandlerResponse{Dimension: v, Value: float64(d.Free) / storageUnits[viper.GetString("volumeUnit")].Multiplier,
+			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: float64(d.Free) / storageUnits[viper.GetString("volumeUnit")].Multiplier,
 				Unit: storageUnits[viper.GetString("volumeUnit")].Name})
 	}
 
