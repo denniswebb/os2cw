@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/ryanuber/columnize"
 	"sort"
+	"k8s.io/kops/_vendor/github.com/aws/aws-sdk-go/aws"
 )
 
 type SendCmd struct {
@@ -39,7 +40,7 @@ func init() {
 	cmd.PersistentFlags().StringP("vol-unit", "u", "", "volume size unit (b, kb, mb, gb, tb)")
 	cmd.PersistentFlags().StringP("namespace", "n", "", "CloudWatch namespace")
 	cmd.PersistentFlags().StringVarP(&systemId, "id", "i", "", "system id to store metrics")
-	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:\\)")
+	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:)")
 	cmd.PersistentFlags().BoolVarP(&dryRun, "dryrun", "", false, "output metrics without sending to CloudWatch")
 
 	viper.BindPFlag("memoryUnit", cmd.PersistentFlags().Lookup("mem-unit"))
@@ -128,6 +129,8 @@ func send(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	setRegion(sess)
+
 	metrics := viper.GetStringSlice("metrics")
 
 	//override configured metrics when specified via CLI
@@ -188,4 +191,11 @@ func generateId() string {
 		return hostname
 	}
 	return ""
+}
+
+func setRegion(s *session.Session) {
+	metadataService := ec2metadata.New(sess)
+	if region, err := metadataService.Region(); err == nil {
+		s.Config.Region = aws.String(region)
+	}
 }
