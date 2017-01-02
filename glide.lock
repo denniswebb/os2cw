@@ -1,5 +1,5 @@
-hash: 68683cb6760b8fbdb60de79fccbe913c13be7b9f53557586ee79f07df12edbf7
-updated: 2017-01-02T10:19:50.637255595-06:00
+hash: 1bfa12d59429fd9b5cd9b659db0c89a28f5e114159434b63abbc1984345ff1ba
+updated: 2017-01-02T14:02:21.366277932-06:00
 imports:
 - name: github.com/aws/aws-sdk-go
   version: 36670f6ab1769ad77fa5f7e2c194398733503635
@@ -59,6 +59,8 @@ imports:
   version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
 - name: github.com/pelletier/go-toml
   version: 439fbba1f887c286024370cb4f281ba815c4c7d7
+- name: github.com/ryanuber/columnize
+  version: 0fbbb3f0e3fbdc5bae7c6cd5f6c1887ebfb76360
 - name: github.com/shirou/gopsutil
   version: aa5843400ec86e2ed6969e9d172e5719c08d56bf
   subpackages:
