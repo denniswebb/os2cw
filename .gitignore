@@ -6,6 +6,11 @@
 # Folders
 _obj
 _test
+build
+.glide
+.idea
+/vendor/github.com/aws
+/vendor/**/.git
 
 # Architecture specific extensions/prefixes
 *.[568vq]
