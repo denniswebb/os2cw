@@ -7,9 +7,9 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws"
+	//"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"time"
+	//"time"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 )
 
@@ -63,7 +63,7 @@ func main() {
 			fmt.Printf("Memory Free Percent: %f%%\n", memFreePercentageValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "MemoryFreePercentage", "Percent", memFreePercentageValue)
+		_, err := SendCwMetric(cloudwatchService, "MemoryFreePercentage", "Percent", memFreePercentageValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -75,7 +75,7 @@ func main() {
 			fmt.Printf("Memory Used Percent: %f%%\n", v.UsedPercent)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "MemoryUtilization", "Percent", v.UsedPercent)
+		_, err := SendCwMetric(cloudwatchService, "MemoryUtilization", "Percent", v.UsedPercent)
 
 		if err != nil {
 			fmt.Println(err)
@@ -89,7 +89,7 @@ func main() {
 			fmt.Printf("Memory Free(%s): %f\n", memUnitText, memFreeValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "Memory Free", memUnitText, memFreeValue)
+		_, err := SendCwMetric(cloudwatchService, "Memory Free", memUnitText, memFreeValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -102,7 +102,7 @@ func main() {
 			fmt.Printf("Memory Used(%s): %f\n", memUnitText, memUsedValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "Memory Used", memUnitText, memUsedValue)
+		_, err := SendCwMetric(cloudwatchService, "Memory Used", memUnitText, memUsedValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -135,7 +135,7 @@ func main() {
 			fmt.Printf("Disk Free Percent: %f%%\n", diskFreePercentageValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "DiskFreePercentage", "Percent", diskFreePercentageValue)
+		_, err := SendCwMetric(cloudwatchService, "DiskFreePercentage", "Percent", diskFreePercentageValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -147,7 +147,7 @@ func main() {
 			fmt.Printf("Disk Used Percent: %f%%\n", d.UsedPercent)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "DiskUtilization", "Percent", d.UsedPercent)
+		_, err := SendCwMetric(cloudwatchService, "DiskUtilization", "Percent", d.UsedPercent)
 
 		if err != nil {
 			fmt.Println(err)
@@ -161,7 +161,7 @@ func main() {
 			fmt.Printf("Disk Free(%s): %f\n", diskUnitText, diskFreeValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "Disk Free", diskUnitText, diskFreeValue)
+		_, err := SendCwMetric(cloudwatchService, "Disk Free", diskUnitText, diskFreeValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -175,7 +175,7 @@ func main() {
 			fmt.Printf("Disk Used(%s): %f\n", diskUnitText, diskUsedValue)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "Disk Used", diskUnitText, diskUsedValue)
+		_, err := SendCwMetric(cloudwatchService, "Disk Used", diskUnitText, diskUsedValue)
 
 		if err != nil {
 			fmt.Println(err)
@@ -206,7 +206,7 @@ func main() {
 			fmt.Printf("System Uptime(%s): %v\n", uptimeUnitText, float64(h.Uptime) / uptimeUnitDivisor)
 		}
 
-		_, err := SendMetrics(cloudwatchService, "Uptime", "Seconds", float64(h.Uptime))
+		_, err := SendCwMetric(cloudwatchService, "Uptime", "Seconds", float64(h.Uptime))
 
 		if err != nil {
 			fmt.Println(err)
@@ -214,23 +214,3 @@ func main() {
 	}
 }
 
-func SendMetrics(cloudwatchService *cloudwatch.CloudWatch, metricName string, metricUnit string, metricValue float64) (*cloudwatch.PutMetricDataOutput, error) {
-	params := &cloudwatch.PutMetricDataInput{
-		MetricData: []*cloudwatch.MetricDatum{
-			{
-				MetricName: aws.String(metricName),
-				Dimensions: []*cloudwatch.Dimension{
-					{
-						Name:  aws.String("InstanceID"),
-						Value: aws.String(config.InstanceId),
-					},
-				},
-				Timestamp: aws.Time(time.Now()),
-				Unit:      aws.String(metricUnit),
-				Value:     aws.Float64(metricValue),
-			},
-		},
-		Namespace: aws.String(config.NameSpace),
-	}
-	return cloudwatchService.PutMetricData(params)
-}

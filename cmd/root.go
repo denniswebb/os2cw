@@ -3,34 +3,49 @@ package cmd
 import (
 	"flag"
 	"fmt"
+
 	"os"
 
-	"github.com/spf13/cobra"
 	log "github.com/Sirupsen/logrus"
-
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-type RootCmd struct {
-	cobraCommand *cobra.Command
-}
+const (
+	appName = "os2cw"
+)
 
-var rootCommand = RootCmd{
-	cobraCommand: &cobra.Command{
-		Use: "os2cw",
-		Short: "os2cw pushes select OS metrics to CloudWatch",
-	},
-}
+var (
+	configFile  string
+	rootCommand = &cobra.Command{
+		Use:   appName,
+		Short: fmt.Sprintf("%s pushes select OS metrics to CloudWatch", appName),
+	}
+)
 
 func init() {
-	cmd := rootCommand.cobraCommand
+	cobra.OnInitialize(initConfig)
+	rootCommand.PersistentFlags().StringVar(&configFile, "config", "", fmt.Sprintf("config file (default is %s.yaml)", appName))
+}
 
-	cmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
+func initConfig() {
+	if configFile != "" {
+		viper.SetConfigFile(configFile)
+	}
+
+	viper.SetConfigName(appName)
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err == nil {
+		log.Infof("Using config file:", viper.ConfigFileUsed())
+	}
 }
 
 func Execute() {
 	flag.CommandLine.Parse([]string{})
-	if err := rootCommand.cobraCommand.Execute(); err != nil {
-		log.Fatalf("%v", err)
+	if err := rootCommand.Execute(); err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
 	}
 }
-
