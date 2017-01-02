@@ -8,6 +8,8 @@ _obj
 _test
 build
 .idea
+/vendor/github.com/aws
+/vendor/**/.git
 
 # Architecture specific extensions/prefixes
 *.[568vq]
