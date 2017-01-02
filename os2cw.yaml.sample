@@ -1,0 +1,8 @@
+memoryUnit: mb
+volumeUnit: gb
+metrics:
+  - mem-util
+  - mem-free
+  - vol-util
+  - vol-free
+  - uptime

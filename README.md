@@ -15,9 +15,21 @@ Everything is outputted into the `build/` dirctory locally.
 
 Simply copy the executable to the system and run.
 
+## Running
+
+`os2cw send mem-free mem-used vol-free vol-used -v all`
+
+## Help
+
+Please refer to runtime help using `os2cw help` and `os2cw help send`
+
 ## Configuration
 
-Add configuration documentation
+Configuration is handled either via command-line arguments, the configuration file
+[`os2cw.yaml`](os2cw.yaml.sample), or a combination of both with command line taking precedent.
+
+Authentication to AWS is handled using the standard methods of leveraging the IAM role or
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
 
 ## Authors
 

@@ -124,7 +124,6 @@ func getVolumesConfigured() (vols []string) {
 	}
 
 	for k, _ := range volMap {
-		//todo: test that each volume exists before adding - log.Warn
 		if _, err := os.Stat(k); err != nil {
 			log.Warn(fmt.Sprintf("Volume %s does not exist.", k))
 			continue
@@ -137,7 +136,6 @@ func getVolumesConfigured() (vols []string) {
 }
 
 func getVolumesAll() (vols []string) {
-	//todo:read all volumes
 	partitions, err := disk.Partitions(false)
 	if err != nil {
 		log.Warnf("Error discovering all volumes. Returning root volume only.\n%s\n", err)
