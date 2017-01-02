@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"sort"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/ryanuber/columnize"
-	"sort"
-	"k8s.io/kops/_vendor/github.com/aws/aws-sdk-go/aws"
 )
 
 type SendCmd struct {
@@ -90,16 +91,16 @@ func updateUsageTemplate() {
 	var metricArgHelp []string
 
 	var args []string
-	for k,_ := range metricSpecs {
-		args = append(args,k)
+	for k, _ := range metricSpecs {
+		args = append(args, k)
 	}
 	sort.Strings(args)
 
 	sendCmd.ValidArgs = args
 	sendCmd.Example = "  os2cw send -u gb -m mb -v / -v /home mem-avail mem-used vol-free uptime"
 
-	for _,arg := range args {
-		metricArgHelp = append(metricArgHelp,fmt.Sprintf("%s | %s \n", arg,metricSpecs[arg].Name))
+	for _, arg := range args {
+		metricArgHelp = append(metricArgHelp, fmt.Sprintf("%s | %s \n", arg, metricSpecs[arg].Name))
 	}
 
 	sendCmd.SetUsageTemplate(
@@ -107,7 +108,7 @@ func updateUsageTemplate() {
 			sendCmd.UsageTemplate(),
 			columnize.Format(metricArgHelp,
 				columnize.MergeConfig(columnize.DefaultConfig(),
-					&columnize.Config{Prefix:"      "}))))
+					&columnize.Config{Prefix: "      "}))))
 }
 
 func send(cmd *cobra.Command, args []string) {

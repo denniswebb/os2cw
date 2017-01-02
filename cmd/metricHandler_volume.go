@@ -7,10 +7,11 @@ import (
 	"sort"
 	"strings"
 
+	"regexp"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/spf13/viper"
-	"regexp"
 )
 
 func volumeUsed() (resp []metricHandlerResponse, err error) {
