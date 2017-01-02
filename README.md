@@ -1,2 +1,4 @@
-# go-ec2-custom-metrics
-Push disk and memory metrics to cloudwatch.
+# os2cw
+Push disk and memory metrics to cloudwatch from Linux, Windows, and Mac.
+
+

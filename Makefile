@@ -6,15 +6,11 @@ CONTAINER_DIR := /go/src/github.com/$(USER)/$(PROJECT)
 CONTAINER_DIR_CIRCLE := /go/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 CIRCLECI := ${CIRCLECI}
 GLIDE := $(shell glide -v dot 2> /dev/null)
+GOX := $(shell gox -verbost dot 2> /dev/null)
 
-all:
-	gox -osarch darwin/amd64 -osarch linux/amd64 -output="$(OUTPUT_FILTER)"
-
-linux:
-	gox -osarch linux/amd64 -output="$(OUTPUT_FILTER)"
-
-mac:
-	gox -osarch darwin/amd64 -output="$(OUTPUT_FILTER)"
+ifndef VERSION
+  VERSION := git-$(shell git rev-parse --short HEAD)
+endif
 
 vend:
 ifndef GLIDE
@@ -22,11 +18,28 @@ ifndef GLIDE
 endif
 	glide install
 
+fmt:
+	goimports -w $$(find . -type f -name '*.go' -not -path "./vendor/*")
+
+all: vend
+	gox  -ldflags "-X main.BuildVersion=${VERSION}" \
+		-osarch darwin/amd64 -osarch linux/amd64 -osarch windows/amd64 \
+		-output="$(OUTPUT_FILTER)"
+
+linux: vend
+	gox -ldflags "-X main.BuildVersion=${VERSION}" -osarch linux/amd64 -output="$(OUTPUT_FILTER)"
+
+mac: vend
+	gox -ldflags "-X main.BuildVersion=${VERSION}" -osarch darwin/amd64 -output="$(OUTPUT_FILTER)"
+
+windows: vend
+	gox -ldflags "-X main.BuildVersion=${VERSION}" -osarch windows/amd64 -output="$(OUTPUT_FILTER)"
+
 clean:
 	rm -rf build/
 	go clean
 
-artifact: clean
+on-docker:
 ifeq ($(CIRCLECI), true)
 	docker run -ti -v $(CURRENT_DIR):$(CONTAINER_DIR_CIRCLE) golang:1.7 /bin/bash -c "cd $(CONTAINER_DIR_CIRCLE) && ./build.sh"
 else
@@ -35,8 +48,8 @@ endif
 
 image: artifact
 ifeq ($(CIRCLECI), true)
-	docker build --rm=false -t upsidetravel-docker.jfrog.io/${CIRCLE_PROJECT_REPONAME}:$(shell head -1 VERSION).${CIRCLE_BUILD_NUM} .
-	docker tag -f upsidetravel-docker.jfrog.io/${CIRCLE_PROJECT_REPONAME}:$(shell head -1 VERSION).${CIRCLE_BUILD_NUM} upsidetravel-docker.jfrog.io/${CIRCLE_PROJECT_REPONAME}:latest
+	docker build --rm=false -t ${CIRCLE_PROJECT_REPONAME}:$(shell head -1 VERSION).${CIRCLE_BUILD_NUM} .
+	docker tag -f ${CIRCLE_PROJECT_REPONAME}:$(shell head -1 VERSION).${CIRCLE_BUILD_NUM} ${CIRCLE_PROJECT_REPONAME}:latest
 else
-	docker build -t upsidetravel-docker.jfrog.io/$(PROJECT):latest .
+	docker build -t $(PROJECT):latest .
 endif

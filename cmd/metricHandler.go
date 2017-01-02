@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/spf13/viper"
@@ -49,6 +50,7 @@ func (ms *metricSpec) Run() error {
 
 		_, err = SendCwMetric(ms.Name, resp.Unit, resp.Value)
 		if err != nil {
+			log.Errorf("Error writing metric %s to CloudWatch.\n", ms.Name)
 			return err
 		}
 	}

@@ -82,6 +82,11 @@ func init() {
 }
 
 func send(cmd *cobra.Command, args []string) {
+	code := 0
+	defer func() {
+		os.Exit(code)
+	}()
+
 	sess = session.New()
 
 	if systemId == "" {
@@ -90,8 +95,9 @@ func send(cmd *cobra.Command, args []string) {
 
 	if systemId == "" {
 		sendCmd.Usage()
-		log.Errorf("\nUnable to generate system id.\n")
-		os.Exit(1)
+		log.Errorf("Unable to generate system id.\n")
+		code = 1
+		return
 	}
 
 	metrics := viper.GetStringSlice("metrics")
@@ -103,20 +109,23 @@ func send(cmd *cobra.Command, args []string) {
 
 	if len(metrics) == 0 {
 		sendCmd.Usage()
-		log.Errorf("\nNo metrics specified.\n")
-		os.Exit(1)
+		log.Errorf("No metrics specified.\n")
+		code = 1
+		return
 	}
 
 	if _, ok := storageUnits[viper.GetString("volumeUnit")]; !ok {
 		sendCmd.Usage()
-		log.Errorf("\nInvalid volume unit: %s\n\n", viper.GetString("volumeUnit"))
-		os.Exit(1)
+		log.Errorf("Invalid volume unit: %s\n\n", viper.GetString("volumeUnit"))
+		code = 1
+		return
 	}
 
 	if _, ok := storageUnits[viper.GetString("memoryUnit")]; !ok {
 		sendCmd.Usage()
-		log.Errorf("\nInvalid memory unit: %s\n\n", viper.GetString("memoryUnit"))
-		os.Exit(1)
+		log.Errorf("Invalid memory unit: %s\n\n", viper.GetString("memoryUnit"))
+		code = 1
+		return
 	}
 
 	//convert to map to remove dupes
@@ -132,7 +141,11 @@ func send(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		s.Run()
+		err := s.Run()
+		if err != nil {
+			log.Errorf("An error occured during metric run.\n%s\n", err)
+			code = 1
+		}
 	}
 }
 

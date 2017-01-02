@@ -2,7 +2,10 @@
 
 set -ex
 
-go get -t -d -v $(go list ./... | grep -v /vendor/)
-go test -v -race $(go list ./... | grep -v /vendor/)
-mkdir -p build/
-CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o build/app
+curl https://glide.sh/get | sh
+
+go get github.com/mitchellh/gox
+go install github.com/mitchellh/gox
+
+make clean
+make all
