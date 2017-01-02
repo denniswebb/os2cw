@@ -1,4 +1,4 @@
-package: github.com/dhwebb/go-ec2-custom-metrics
+package: github.com/dhwebb/os2cw
 import:
 - package: github.com/Sirupsen/logrus
   version: v0.11.0
