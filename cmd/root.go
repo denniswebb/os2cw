@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-
 	"os"
+	"runtime"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -44,6 +44,9 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(appName)
+	if runtime.GOOS != "windows" {
+		viper.AddConfigPath("/etc")
+	}
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
