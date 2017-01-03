@@ -8,6 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"runtime"
 )
 
 const (
@@ -44,6 +45,9 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(appName)
+	if runtime.GOOS != "windows" {
+		viper.AddConfigPath("/etc")
+	}
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
