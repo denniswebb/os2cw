@@ -24,6 +24,8 @@ Simply copy the executable to the system and run.
 Configuration is handled either via command-line arguments, the configuration file
 [`os2cw.yaml`](os2cw.yaml.sample), or a combination of both with command line taking precedent.
 
+Application will search for `os2cw.yaml` in `/etc` and the current working directory.
+
 AWS Region by default will try to be inferred by instance metadata.
 It can be overriden, in order of precedence, by:
 
