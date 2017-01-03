@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"regexp"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/spf13/viper"
@@ -110,6 +112,11 @@ func getVolumesConfigured() (vols []string) {
 	volMap := make(map[string]struct{})
 
 	for _, vol := range viperVols {
+		//uppercase windows drives and remove \
+		match, _ := regexp.MatchString("^[[:alpha:]]:\\\\*$", vol)
+		if match {
+			vol = strings.ToUpper(vol[0:2])
+		}
 		volMap[vol] = struct{}{}
 	}
 
@@ -153,7 +160,7 @@ func getVolumesAll() (vols []string) {
 func getVolumeRoot() string {
 	if runtime.GOOS == "windows" {
 		curdir, _ := os.Getwd()
-		return curdir[0:3]
+		return curdir[0:2]
 	}
 	return "/"
 }

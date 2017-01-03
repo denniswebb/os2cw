@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"os"
 
+	"sort"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/ryanuber/columnize"
-	"sort"
 )
 
 type SendCmd struct {
@@ -30,6 +33,8 @@ var (
 )
 
 func init() {
+	sess, _ = session.NewSession()
+
 	cmd := sendCmd
 	cmd.Run = send
 
@@ -39,7 +44,7 @@ func init() {
 	cmd.PersistentFlags().StringP("vol-unit", "u", "", "volume size unit (b, kb, mb, gb, tb)")
 	cmd.PersistentFlags().StringP("namespace", "n", "", "CloudWatch namespace")
 	cmd.PersistentFlags().StringVarP(&systemId, "id", "i", "", "system id to store metrics")
-	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:\\)")
+	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:)")
 	cmd.PersistentFlags().BoolVarP(&dryRun, "dryrun", "", false, "output metrics without sending to CloudWatch")
 
 	viper.BindPFlag("memoryUnit", cmd.PersistentFlags().Lookup("mem-unit"))
@@ -54,6 +59,7 @@ func init() {
 	viper.SetDefault("volumeUnit", "mb")
 	viper.SetDefault("namespace", "System")
 	viper.SetDefault("volumes", []string{"all"})
+	viper.SetDefault("region", getRegion())
 
 	metricSpecs = make(map[string]metricSpec)
 	metricSpecs["mem-avail"] = metricSpec{Name: "MemoryFreePercentage",
@@ -89,16 +95,16 @@ func updateUsageTemplate() {
 	var metricArgHelp []string
 
 	var args []string
-	for k,_ := range metricSpecs {
-		args = append(args,k)
+	for k, _ := range metricSpecs {
+		args = append(args, k)
 	}
 	sort.Strings(args)
 
 	sendCmd.ValidArgs = args
 	sendCmd.Example = "  os2cw send -u gb -m mb -v / -v /home mem-avail mem-used vol-free uptime"
 
-	for _,arg := range args {
-		metricArgHelp = append(metricArgHelp,fmt.Sprintf("%s | %s \n", arg,metricSpecs[arg].Name))
+	for _, arg := range args {
+		metricArgHelp = append(metricArgHelp, fmt.Sprintf("%s | %s \n", arg, metricSpecs[arg].Name))
 	}
 
 	sendCmd.SetUsageTemplate(
@@ -106,7 +112,7 @@ func updateUsageTemplate() {
 			sendCmd.UsageTemplate(),
 			columnize.Format(metricArgHelp,
 				columnize.MergeConfig(columnize.DefaultConfig(),
-					&columnize.Config{Prefix:"      "}))))
+					&columnize.Config{Prefix: "      "}))))
 }
 
 func send(cmd *cobra.Command, args []string) {
@@ -114,8 +120,6 @@ func send(cmd *cobra.Command, args []string) {
 	defer func() {
 		os.Exit(code)
 	}()
-
-	sess = session.New()
 
 	if systemId == "" {
 		systemId = generateId()
@@ -127,6 +131,8 @@ func send(cmd *cobra.Command, args []string) {
 		code = 1
 		return
 	}
+
+	configureSession(sess)
 
 	metrics := viper.GetStringSlice("metrics")
 
@@ -188,4 +194,24 @@ func generateId() string {
 		return hostname
 	}
 	return ""
+}
+
+func getRegion() string {
+	metadataService := ec2metadata.New(sess)
+	region, _ := metadataService.Region()
+	return region
+}
+
+func configureSession(s *session.Session) {
+	log.Debugf("Viper region: %s", viper.GetString("region"))
+	if viper.GetString("region") != "" {
+		s.Config.Region = aws.String(viper.GetString("region"))
+		log.Debugf("Session region updated to %s.", *s.Config.Region)
+	}
+
+	log.Debugf("Viper accessKey value found: %v.", viper.GetString("accessKey") != "")
+	if viper.GetString("accessKey") != "" {
+		s.Config.Credentials = credentials.NewStaticCredentials(viper.GetString("accessKey"), viper.GetString("secretKey"), "")
+		log.Debugf("Session credentials set from accessKey.")
+	}
 }

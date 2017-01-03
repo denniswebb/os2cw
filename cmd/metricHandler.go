@@ -32,7 +32,7 @@ type metricUnit struct {
 }
 
 type dimension struct {
-	Name string
+	Name  string
 	Value string
 }
 
@@ -46,7 +46,7 @@ func (ms *metricSpec) Run() error {
 	for _, resp := range responses {
 		if dryRun {
 			if resp.Dimension.Name != "" {
-				fmt.Printf("%s(%s: %s) %s: %v %s\n", systemId, resp.Dimension.Name ,resp.Dimension.Value, ms.Name, resp.Value, resp.Unit)
+				fmt.Printf("%s(%s: %s) %s: %v %s\n", systemId, resp.Dimension.Name, resp.Dimension.Value, ms.Name, resp.Value, resp.Unit)
 			} else {
 				fmt.Printf("%s %s: %v %s\n", systemId, ms.Name, resp.Value, resp.Unit)
 			}
@@ -72,10 +72,10 @@ func SendCwMetric(metricName, metricUnit string, metricValue float64, d dimensio
 
 	if d.Name != "" {
 		dimensions = append(dimensions,
-		&cloudwatch.Dimension{
-			Name: aws.String(d.Name),
-			Value: aws.String(d.Value),
-		})
+			&cloudwatch.Dimension{
+				Name:  aws.String(d.Name),
+				Value: aws.String(d.Value),
+			})
 	}
 
 	params := &cloudwatch.PutMetricDataInput{
@@ -83,9 +83,9 @@ func SendCwMetric(metricName, metricUnit string, metricValue float64, d dimensio
 			{
 				MetricName: aws.String(metricName),
 				Dimensions: dimensions,
-				Timestamp: aws.Time(time.Now()),
-				Unit:      aws.String(metricUnit),
-				Value:     aws.Float64(metricValue),
+				Timestamp:  aws.Time(time.Now()),
+				Unit:       aws.String(metricUnit),
+				Value:      aws.Float64(metricValue),
 			},
 		},
 		Namespace: aws.String(viper.GetString("namespace")),

@@ -1,8 +1,21 @@
+region: us-east-1
+accessKey: YOUR_AWS_ACCESS_KEY_ID
+secretKey: YOUR_AWS_SECRET_ACCESS_KEY
+namespace: system
+systemId: hostname
 memoryUnit: mb
 volumeUnit: gb
+volumes:
+  - /
+  - /home
+  - /data
 metrics:
-  - mem-util
+  - mem-avail
   - mem-free
-  - vol-util
-  - vol-free
+  - mem-used
+  - mem-util
   - uptime
+  - vol-avail
+  - vol-free
+  - vol-used
+  - vol-util
