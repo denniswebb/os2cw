@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"flag"
 	"fmt"
 
 	"os"
@@ -26,6 +25,17 @@ var (
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCommand.PersistentFlags().StringVar(&configFile, "config", "", fmt.Sprintf("config file (default is %s.yaml)", appName))
+	rootCommand.PersistentFlags().StringP("region", "", "", "AWS region")
+	rootCommand.PersistentFlags().StringP("access-key", "", "", "AWS access key id")
+	rootCommand.PersistentFlags().StringP("secret-key", "", "", "AWS secret access key")
+
+	viper.BindPFlag("region", rootCommand.PersistentFlags().Lookup("region"))
+	viper.BindPFlag("accessKey", rootCommand.PersistentFlags().Lookup("access-key"))
+	viper.BindPFlag("secretKey", rootCommand.PersistentFlags().Lookup("secret-key"))
+
+	viper.BindEnv("region", "AWS_REGION")
+	viper.BindEnv("accessKey", "AWS_ACCESS_KEY_ID")
+	viper.BindEnv("secretKey", "AWS_SECRET_ACCESS_KEY")
 }
 
 func initConfig() {
@@ -43,7 +53,7 @@ func initConfig() {
 }
 
 func Execute() {
-	flag.CommandLine.Parse([]string{})
+	//flag.CommandLine.Parse([]string{})
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)

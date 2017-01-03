@@ -8,6 +8,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ryanuber/columnize"
@@ -32,6 +33,8 @@ var (
 )
 
 func init() {
+	sess, _ = session.NewSession()
+
 	cmd := sendCmd
 	cmd.Run = send
 
@@ -56,6 +59,7 @@ func init() {
 	viper.SetDefault("volumeUnit", "mb")
 	viper.SetDefault("namespace", "System")
 	viper.SetDefault("volumes", []string{"all"})
+	viper.SetDefault("region", getRegion())
 
 	metricSpecs = make(map[string]metricSpec)
 	metricSpecs["mem-avail"] = metricSpec{Name: "MemoryFreePercentage",
@@ -117,8 +121,6 @@ func send(cmd *cobra.Command, args []string) {
 		os.Exit(code)
 	}()
 
-	sess = session.New()
-
 	if systemId == "" {
 		systemId = generateId()
 	}
@@ -130,7 +132,7 @@ func send(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	setRegion(sess)
+	configureSession(sess)
 
 	metrics := viper.GetStringSlice("metrics")
 
@@ -194,9 +196,22 @@ func generateId() string {
 	return ""
 }
 
-func setRegion(s *session.Session) {
+func getRegion() string {
 	metadataService := ec2metadata.New(sess)
-	if region, err := metadataService.Region(); err == nil {
-		s.Config.Region = aws.String(region)
+	region, _ := metadataService.Region()
+	return region
+}
+
+func configureSession(s *session.Session) {
+	log.Debugf("Viper region: %s", viper.GetString("region"))
+	if viper.GetString("region") != "" {
+		s.Config.Region = aws.String(viper.GetString("region"))
+		log.Debugf("Session region updated to %s.", *s.Config.Region)
+	}
+
+	log.Debugf("Viper accessKey value found: %v.", viper.GetString("accessKey") != "")
+	if viper.GetString("accessKey") != "" {
+		s.Config.Credentials = credentials.NewStaticCredentials(viper.GetString("accessKey"), viper.GetString("secretKey"), "")
+		log.Debugf("Session credentials set from accessKey.")
 	}
 }
