@@ -84,7 +84,7 @@ func init() {
 		handler: volumeUtil}
 	metricSpecs["uptime"] = metricSpec{Name: "Uptime",
 		handler: uptime}
-	metricSpecs["procs"] = metricSpec{Name: "Procs",
+	metricSpecs["procs"] = metricSpec{Name: "Processes",
 		handler: procs}
 
 	updateUsageTemplate()
