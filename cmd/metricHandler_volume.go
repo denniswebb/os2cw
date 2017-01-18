@@ -59,6 +59,14 @@ func volumeAvailable() (resp []metricHandlerResponse, err error) {
 	return volHandler("avail")
 }
 
+func volumeFree() (resp []metricHandlerResponse, err error) {
+	return volHandler("free")
+}
+
+func volumeTotal() (resp []metricHandlerResponse, err error) {
+	return volHandler("total")
+}
+
 func volumeUsed() (resp []metricHandlerResponse, err error) {
 	return volHandler("used")
 }
@@ -67,9 +75,6 @@ func volumeUtil() (resp []metricHandlerResponse, err error) {
 	return volHandler("util")
 }
 
-func volumeFree() (resp []metricHandlerResponse, err error) {
-	return volHandler("free")
-}
 
 func getVolumesConfigured() (vols []string) {
 	viperVols := viper.GetStringSlice("volumes")

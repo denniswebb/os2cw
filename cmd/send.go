@@ -77,7 +77,7 @@ func init() {
 	metricSpecs["vol-free"] = metricSpec{Name: "VolumeFree",
 		handler: volumeFree}
 	metricSpecs["vol-total"] = metricSpec{Name: "VolumeTotal",
-		handler: volTotal}
+		handler: volumeTotal}
 	metricSpecs["vol-used"] = metricSpec{Name: "VolumeUsed",
 		handler: volumeUsed}
 	metricSpecs["vol-util"] = metricSpec{Name: "VolumeUsedPercentage",
@@ -85,7 +85,7 @@ func init() {
 	metricSpecs["uptime"] = metricSpec{Name: "Uptime",
 		handler: uptime}
 	metricSpecs["procs"] = metricSpec{Name: "Procs",
-		handler: procs()}
+		handler: procs}
 
 	updateUsageTemplate()
 
