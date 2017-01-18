@@ -5,48 +5,51 @@ import (
 	"github.com/spf13/viper"
 )
 
-func memAvail() (resp []metricHandlerResponse, err error) {
+func memHandler(metric string) (resp []metricHandlerResponse, err error) {
 	v, err := mem.VirtualMemory()
 
 	if err != nil {
 		return nil, err
 	}
 
-	return []metricHandlerResponse{metricHandlerResponse{Value: 100.0 - v.UsedPercent, Unit: "Percent"}}, nil
+	value := 0.0
+	unit := storageUnits[viper.GetString("memoryUnit")].Name
+	multiplier := storageUnits[viper.GetString("memoryUnit")].Multiplier
+
+	switch metric{
+	case "avail":
+		value = 100.0 - v.UsedPercent
+		unit = "Percent"
+	case "free":
+		value = float64(v.Available) / multiplier
+	case "total":
+		value = float64(v.Total) / multiplier
+	case "used":
+		value = float64(v.Used) / multiplier
+	case "util":
+		value = v.UsedPercent
+		unit = "Percent"
+	}
+
+	return []metricHandlerResponse{metricHandlerResponse{Value: value, Unit: unit}}, nil
 }
 
-func memUtil() (resp []metricHandlerResponse, err error) {
-	v, err := mem.VirtualMemory()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return []metricHandlerResponse{metricHandlerResponse{Value: v.UsedPercent, Unit: "Percent"}}, nil
+func memAvail() (resp []metricHandlerResponse, err error) {
+	return memHandler("avail")
 }
 
 func memFree() (resp []metricHandlerResponse, err error) {
-	v, err := mem.VirtualMemory()
+	return memHandler("free")
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return []metricHandlerResponse{
-		metricHandlerResponse{Value: float64(v.Available) / storageUnits[viper.GetString("memoryUnit")].Multiplier,
-			Unit: storageUnits[viper.GetString("memoryUnit")].Name},
-	}, nil
+func memTotal() (resp []metricHandlerResponse, err error) {
+	return memHandler("total")
 }
 
 func memUsed() (resp []metricHandlerResponse, err error) {
-	v, err := mem.VirtualMemory()
+	return memHandler("used")
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return []metricHandlerResponse{
-		metricHandlerResponse{Value: float64(v.Used) / storageUnits[viper.GetString("memoryUnit")].Multiplier,
-			Unit: storageUnits[viper.GetString("memoryUnit")].Name},
-	}, nil
+func memUtil() (resp []metricHandlerResponse, err error) {
+	return memHandler("util")
 }
