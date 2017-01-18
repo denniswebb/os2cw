@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func volumeUsed() (resp []metricHandlerResponse, err error) {
+func volHandler(metric string) (resp []metricHandlerResponse, err error) {
 	volumes := getVolumesConfigured()
 
 	if len(volumes) == 0 {
@@ -28,78 +28,53 @@ func volumeUsed() (resp []metricHandlerResponse, err error) {
 			log.Warn(err)
 			continue
 		}
+
+		value := 0.0
+		unit := storageUnits[viper.GetString("volumeUnit")].Name
+		multiplier := storageUnits[viper.GetString("volumeUnit")].Multiplier
+		metDim := dimension{Name: "Volume", Value: v}
+
+		switch metric{
+		case "avail":
+			value = 100.0 - d.UsedPercent
+			unit = "Percent"
+		case "free":
+			value = float64(d.Free) / multiplier
+		case "total":
+			value = float64(d.Total) / multiplier
+		case "used":
+			value = float64(d.Used) / multiplier
+		case "util":
+			value = d.UsedPercent
+			unit = "Percent"
+		}
 		resp = append(resp,
-			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v},
-				Value: float64(d.Used) / storageUnits[viper.GetString("volumeUnit")].Multiplier,
-				Unit:  storageUnits[viper.GetString("volumeUnit")].Name})
+			metricHandlerResponse{Dimension: metDim, Value: value, Unit: unit})
 	}
 
 	return resp, nil
 }
 
 func volumeAvailable() (resp []metricHandlerResponse, err error) {
-	volumes := getVolumesConfigured()
-
-	if len(volumes) == 0 {
-		volumes = []string{getVolumeRoot()}
-	}
-
-	for _, v := range volumes {
-		d, err := disk.Usage(v)
-
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-		resp = append(resp,
-			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: 100.0 - d.UsedPercent, Unit: "Percent"})
-	}
-
-	return resp, nil
-}
-
-func volumeUtil() (resp []metricHandlerResponse, err error) {
-	volumes := getVolumesConfigured()
-
-	if len(volumes) == 0 {
-		volumes = []string{getVolumeRoot()}
-	}
-
-	for _, v := range volumes {
-		d, err := disk.Usage(v)
-
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-		resp = append(resp,
-			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: d.UsedPercent, Unit: "Percent"})
-	}
-
-	return resp, nil
+	return volHandler("avail")
 }
 
 func volumeFree() (resp []metricHandlerResponse, err error) {
-	volumes := getVolumesConfigured()
-
-	if len(volumes) == 0 {
-		volumes = []string{getVolumeRoot()}
-	}
-
-	for _, v := range volumes {
-		d, err := disk.Usage(v)
-
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-		resp = append(resp,
-			metricHandlerResponse{Dimension: dimension{Name: "Volume", Value: v}, Value: float64(d.Free) / storageUnits[viper.GetString("volumeUnit")].Multiplier,
-				Unit: storageUnits[viper.GetString("volumeUnit")].Name})
-	}
-
-	return resp, nil
+	return volHandler("free")
 }
+
+func volumeTotal() (resp []metricHandlerResponse, err error) {
+	return volHandler("total")
+}
+
+func volumeUsed() (resp []metricHandlerResponse, err error) {
+	return volHandler("used")
+}
+
+func volumeUtil() (resp []metricHandlerResponse, err error) {
+	return volHandler("util")
+}
+
 
 func getVolumesConfigured() (vols []string) {
 	viperVols := viper.GetStringSlice("volumes")

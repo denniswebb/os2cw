@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/dhwebb/os2cw/tree/master.svg?style=svg&circle-token=4927e733b73bdffb9a70375ff5b54db416e44b60)](https://circleci.com/gh/dhwebb/os2cw/tree/master)
 # os2cw
 Push disk and memory metrics to cloudwatch from Linux, Windows, and Mac.
 

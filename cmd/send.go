@@ -66,6 +66,8 @@ func init() {
 		handler: memAvail}
 	metricSpecs["mem-free"] = metricSpec{Name: "MemoryFree",
 		handler: memFree}
+	metricSpecs["mem-total"] = metricSpec{Name: "MemoryTotal",
+		handler: memTotal}
 	metricSpecs["mem-used"] = metricSpec{Name: "MemoryUsed",
 		handler: memUsed}
 	metricSpecs["mem-util"] = metricSpec{Name: "MemoryUsedPercentage",
@@ -74,12 +76,16 @@ func init() {
 		handler: volumeAvailable}
 	metricSpecs["vol-free"] = metricSpec{Name: "VolumeFree",
 		handler: volumeFree}
+	metricSpecs["vol-total"] = metricSpec{Name: "VolumeTotal",
+		handler: volumeTotal}
 	metricSpecs["vol-used"] = metricSpec{Name: "VolumeUsed",
 		handler: volumeUsed}
 	metricSpecs["vol-util"] = metricSpec{Name: "VolumeUsedPercentage",
 		handler: volumeUtil}
 	metricSpecs["uptime"] = metricSpec{Name: "Uptime",
 		handler: uptime}
+	metricSpecs["procs"] = metricSpec{Name: "Processes",
+		handler: procs}
 
 	updateUsageTemplate()
 
