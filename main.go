@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/dhwebb/os2cw/cmd"
+	"github.com/denniswebb/os2cw/cmd"
 )
 
 var BuildVersion = "0.1"

@@ -6,7 +6,9 @@ CONTAINER_DIR := /go/src/github.com/$(USER)/$(PROJECT)
 CONTAINER_DIR_CIRCLE := /go/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 CIRCLECI := ${CIRCLECI}
 GLIDE := $(shell glide -v dot 2> /dev/null)
-GOX := $(shell gox -verbost dot 2> /dev/null)
+GOX := $(shell gox -verbose dot 2> /dev/null)
+
+.DEFAULT_GOAL := all
 
 ifndef VERSION
   VERSION := git-$(shell git rev-parse --short HEAD)
