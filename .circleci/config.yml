@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/src
+    docker:
+      - image: docker:17.06.0-ce
+    steps:
+      - setup_remote_docker:
+          reusable: true
+          exclusive: true
+          version: 17.06.0-ce
+      - run:
+          name: Dependencies
+          command: apk add --no-cache make git curl openssh
+      - checkout
+      - run:
+          name: Build artifact
+          command: make on-docker
+      - store_artifacts:
+          path: ~/src/build

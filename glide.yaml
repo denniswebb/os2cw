@@ -1,4 +1,4 @@
-package: github.com/dhwebb/os2cw
+package: github.com/denniswebb/os2cw
 import:
 - package: github.com/Sirupsen/logrus
   version: v0.11.0
