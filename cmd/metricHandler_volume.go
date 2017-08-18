@@ -34,7 +34,7 @@ func volHandler(metric string) (resp []metricHandlerResponse, err error) {
 		multiplier := storageUnits[viper.GetString("volumeUnit")].Multiplier
 		metDim := dimension{Name: "Volume", Value: v}
 
-		switch metric{
+		switch metric {
 		case "avail":
 			value = 100.0 - d.UsedPercent
 			unit = "Percent"
@@ -75,7 +75,6 @@ func volumeUtil() (resp []metricHandlerResponse, err error) {
 	return volHandler("util")
 }
 
-
 func getVolumesConfigured() (vols []string) {
 	viperVols := viper.GetStringSlice("volumes")
 
@@ -105,7 +104,7 @@ func getVolumesConfigured() (vols []string) {
 		}
 	}
 
-	for k, _ := range volMap {
+	for k := range volMap {
 		if _, err := os.Stat(k); err != nil {
 			log.Warn(fmt.Sprintf("Volume %s does not exist.", k))
 			continue

@@ -40,7 +40,7 @@ windows: vend
 	gox -ldflags "-X main.BuildVersion=${VERSION}" -osarch windows/amd64 -output="$(output_filter)"
 
 clean:
-	rm -rf build/
+	rm -rf build/ vendor/
 	go clean
 
 on-docker:
