@@ -23,7 +23,7 @@ endif
 	glide install
 
 fmt:
-	goimports -w $$(find . -type f -name '*.go' -not -path "./vendor/*")
+	goimports -w $$(find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./.glide/*")
 
 all: vend
 	gox  -ldflags "-X main.BuildVersion=${VERSION}" \
