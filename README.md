@@ -1,5 +1,7 @@
-[![CircleCI](https://circleci.com/gh/denniswebb/os2cw/tree/master.svg?style=svg&circle-token=4927e733b73bdffb9a70375ff5b54db416e44b60)](https://circleci.com/gh/denniswebb/os2cw/tree/master)
 # os2cw
+[![CircleCI](https://circleci.com/gh/denniswebb/os2cw/tree/master.svg?style=svg&circle-token=4927e733b73bdffb9a70375ff5b54db416e44b60)](https://circleci.com/gh/denniswebb/os2cw/tree/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/denniswebb/os2cw)](https://goreportcard.com/report/github.com/denniswebb/os2cw)
+
 Push disk and memory metrics to cloudwatch from Linux, Windows, and Mac.
 
 ## Installing/Building
