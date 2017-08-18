@@ -16,7 +16,7 @@ func memHandler(metric string) (resp []metricHandlerResponse, err error) {
 	unit := storageUnits[viper.GetString("memoryUnit")].Name
 	multiplier := storageUnits[viper.GetString("memoryUnit")].Multiplier
 
-	switch metric{
+	switch metric {
 	case "avail":
 		value = 100.0 - v.UsedPercent
 		unit = "Percent"

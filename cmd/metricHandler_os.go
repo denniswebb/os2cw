@@ -14,7 +14,7 @@ func osHandler(metric string) (resp []metricHandlerResponse, err error) {
 	value := 0.0
 	unit := "None"
 
-	switch metric{
+	switch metric {
 	case "uptime":
 		value = float64(h.Uptime)
 		unit = "Seconds"
