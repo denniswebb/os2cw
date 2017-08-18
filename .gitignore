@@ -9,8 +9,7 @@ _test
 build
 .glide
 .idea
-/vendor/github.com/aws
-/vendor/**/.git
+vendor
 
 # Architecture specific extensions/prefixes
 *.[568vq]

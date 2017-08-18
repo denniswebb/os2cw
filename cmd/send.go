@@ -16,10 +16,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type SendCmd struct {
-	cobraCommand *cobra.Command
-}
-
 var (
 	sendCmd = &cobra.Command{
 		Use:   "send",
@@ -28,7 +24,7 @@ var (
 
 	sess *session.Session
 
-	systemId string
+	systemID string
 	dryRun   bool
 )
 
@@ -43,14 +39,14 @@ func init() {
 	cmd.PersistentFlags().StringP("mem-unit", "m", "", "memory size unit (b, kb, mb, gb)")
 	cmd.PersistentFlags().StringP("vol-unit", "u", "", "volume size unit (b, kb, mb, gb, tb)")
 	cmd.PersistentFlags().StringP("namespace", "n", "", "CloudWatch namespace")
-	cmd.PersistentFlags().StringVarP(&systemId, "id", "i", "", "system id to store metrics")
+	cmd.PersistentFlags().StringVarP(&systemID, "id", "i", "", "system id to store metrics")
 	cmd.PersistentFlags().StringSliceP("volumes", "v", []string{}, "volumes to report (examples: /,/home,C:)")
 	cmd.PersistentFlags().BoolVarP(&dryRun, "dryrun", "", false, "output metrics without sending to CloudWatch")
 
 	viper.BindPFlag("memoryUnit", cmd.PersistentFlags().Lookup("mem-unit"))
 	viper.BindPFlag("volumeUnit", cmd.PersistentFlags().Lookup("vol-unit"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
-	viper.BindPFlag("systemId", cmd.PersistentFlags().Lookup("id"))
+	viper.BindPFlag("systemID", cmd.PersistentFlags().Lookup("id"))
 	viper.BindPFlag("volumes", cmd.PersistentFlags().Lookup("volumes"))
 	viper.BindPFlag("dryrun", cmd.PersistentFlags().Lookup("dryrun"))
 
@@ -101,7 +97,7 @@ func updateUsageTemplate() {
 	var metricArgHelp []string
 
 	var args []string
-	for k, _ := range metricSpecs {
+	for k := range metricSpecs {
 		args = append(args, k)
 	}
 	sort.Strings(args)
@@ -127,11 +123,11 @@ func send(cmd *cobra.Command, args []string) {
 		os.Exit(code)
 	}()
 
-	if systemId == "" {
-		systemId = generateId()
+	if systemID == "" {
+		systemID = generateID()
 	}
 
-	if systemId == "" {
+	if systemID == "" {
 		sendCmd.Usage()
 		log.Errorf("Unable to generate system id.\n")
 		code = 1
@@ -174,7 +170,7 @@ func send(cmd *cobra.Command, args []string) {
 		metricsDistinct[metric] = struct{}{}
 	}
 
-	for metric, _ := range metricsDistinct {
+	for metric := range metricsDistinct {
 		s, ok := metricSpecs[metric]
 		if !ok {
 			fmt.Printf("Error: Invalid metric %s provided.\n", metric)
@@ -189,7 +185,7 @@ func send(cmd *cobra.Command, args []string) {
 	}
 }
 
-func generateId() string {
+func generateID() string {
 	//try to read instanceid from metadata
 	metadataService := ec2metadata.New(sess)
 	if instanceid, err := metadataService.GetMetadata("instance-id"); err == nil {

@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	//BuildVersion is the current version of the binary.  Set at build time.
 	BuildVersion = "0.1"
 )
 
