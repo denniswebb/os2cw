@@ -179,7 +179,7 @@ func send(cmd *cobra.Command, args []string) {
 
 		err := s.Run()
 		if err != nil {
-			log.Errorf("An error occured during metric run.\n%s\n", err)
+			log.Errorf("An error occurred during metric run.\n%s\n", err)
 			code = 1
 		}
 	}
