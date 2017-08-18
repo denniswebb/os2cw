@@ -46,14 +46,14 @@ func (ms *metricSpec) Run() error {
 	for _, resp := range responses {
 		if dryRun {
 			if resp.Dimension.Name != "" {
-				fmt.Printf("%s(%s: %s) %s: %v %s\n", systemId, resp.Dimension.Name, resp.Dimension.Value, ms.Name, resp.Value, resp.Unit)
+				fmt.Printf("%s(%s: %s) %s: %v %s\n", systemID, resp.Dimension.Name, resp.Dimension.Value, ms.Name, resp.Value, resp.Unit)
 			} else {
-				fmt.Printf("%s %s: %v %s\n", systemId, ms.Name, resp.Value, resp.Unit)
+				fmt.Printf("%s %s: %v %s\n", systemID, ms.Name, resp.Value, resp.Unit)
 			}
 			continue
 		}
 
-		_, err = SendCwMetric(ms.Name, resp.Unit, resp.Value, resp.Dimension)
+		_, err = sendCwMetric(ms.Name, resp.Unit, resp.Value, resp.Dimension)
 		if err != nil {
 			log.Errorf("Error writing metric %s to CloudWatch.\n", ms.Name)
 			return err
@@ -63,11 +63,11 @@ func (ms *metricSpec) Run() error {
 	return nil
 }
 
-func SendCwMetric(metricName, metricUnit string, metricValue float64, d dimension) (*cloudwatch.PutMetricDataOutput, error) {
+func sendCwMetric(metricName, metricUnit string, metricValue float64, d dimension) (*cloudwatch.PutMetricDataOutput, error) {
 	dimensions := []*cloudwatch.Dimension{
 		{
 			Name:  aws.String("InstanceID"),
-			Value: aws.String(systemId),
+			Value: aws.String(systemID),
 		}}
 
 	if d.Name != "" {

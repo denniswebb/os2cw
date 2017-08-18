@@ -55,6 +55,7 @@ func initConfig() {
 	}
 }
 
+//Execute is the primary entrypoint for this library
 func Execute() {
 	//flag.CommandLine.Parse([]string{})
 	if err := rootCommand.Execute(); err != nil {
